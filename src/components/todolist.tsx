@@ -178,12 +178,12 @@ export default function TodoList() {
             const timeLeft = calculateTimeRemaining(task.deadline);
             const isExpired = timeLeft === 'Waktu habis!';
             const taskColor = task.completed
-              ? 'bg-green-100'
+              ? 'bg-green-100'*
               : isExpired
               ? 'bg-red-100'
               : 'bg-yellow-100';
-
-            return (
+.
+            return (.
               <motion.li
                 key={task.id}
                 initial={{ opacity: 0, y: -10 }}
