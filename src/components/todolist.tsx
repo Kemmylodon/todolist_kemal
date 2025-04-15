@@ -24,6 +24,8 @@ export default function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [darkMode, setDarkMode] = useState(false);
+  const [fadeTheme, setFadeTheme] = useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -72,6 +74,30 @@ export default function TodoList() {
       showDeadlineAlert();
     }
   }, [tasks]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+    setDarkMode(initialDark);
+    if (initialDark) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, []);
+
+  const toggleTheme = () => {
+    const isDark = !darkMode;
+    setFadeTheme(true);
+    setDarkMode(isDark);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    setTimeout(() => setFadeTheme(false), 400);
+  };
 
   const calculateTimeRemaining = (deadline: string): string => {
     const deadlineTime = new Date(deadline).getTime();
@@ -186,9 +212,7 @@ export default function TodoList() {
 
   const handleCheckbox = (taskId: string) => {
     setSelectedTasks((prev) =>
-      prev.includes(taskId)
-        ? prev.filter((id) => id !== taskId)
-        : [...prev, taskId]
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
     );
   };
 
@@ -204,9 +228,7 @@ export default function TodoList() {
     });
 
     if (confirm.isConfirmed) {
-      await Promise.all(
-        selectedTasks.map((id) => deleteDoc(doc(db, 'tasks', id)))
-      );
+      await Promise.all(selectedTasks.map((id) => deleteDoc(doc(db, 'tasks', id))));
       setTasks(tasks.filter((task) => !selectedTasks.includes(task.id)));
       setSelectedTasks([]);
       Swal.fire('Dihapus!', 'Tugas terpilih telah dihapus.', 'success');
@@ -214,87 +236,102 @@ export default function TodoList() {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 bg-gray-50 shadow-lg rounded-lg">
-      <h1 className="text-3xl font-bold text-center text-emerald-600 mb-6">
-        📋 To-Do List
-      </h1>
-      <div className="flex justify-between mb-6">
-        <button
-          onClick={addTask}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded transition"
-        >
-          ➕ Tambah Tugas
-        </button>
-        {selectedTasks.length > 0 && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: fadeTheme ? 0.5 : 1 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen transition-colors duration-300 bg-white dark:bg-gray-900 text-black dark:text-white px-4"
+    >
+      <div className="max-w-xl mx-auto mt-10 p-6 bg-gray-50 dark:bg-gray-800 shadow-lg rounded-lg transition-colors duration-300">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-emerald-600 dark:text-emerald-300">
+            📋 To-Do List
+          </h1>
           <button
-            onClick={handleMultiDelete}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
+            onClick={toggleTheme}
+            className="bg-gray-200 dark:bg-gray-700 text-black dark:text-white px-3 py-1 rounded"
           >
-            🗑 Hapus Terpilih ({selectedTasks.length})
+            {darkMode ? '☀ Light' : '🌙 Dark'}
           </button>
-        )}
-      </div>
-      <ul className="space-y-3">
-        <AnimatePresence>
-          {tasks.map((task) => {
-            const timeLeft = timeRemaining[task.id] || 'Menghitung...';
-            const isExpired = timeLeft === 'Waktu habis!';
-            const backgroundColor = task.completed
-              ? '#3CB371'
-              : isExpired
-              ? '#63666A'
-              : '#E9967A';
+        </div>
+        <div className="flex justify-between mb-6">
+          <button
+            onClick={addTask}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded"
+          >
+            ➕ Tambah Tugas
+          </button>
+          {selectedTasks.length > 0 && (
+            <button
+              onClick={handleMultiDelete}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+            >
+              🗑 Hapus Terpilih ({selectedTasks.length})
+            </button>
+          )}
+        </div>
+        <ul className="space-y-3">
+          <AnimatePresence>
+            {tasks.map((task) => {
+              const timeLeft = timeRemaining[task.id] || 'Menghitung...';
+              const isExpired = timeLeft === 'Waktu habis!';
+              const backgroundColor = task.completed
+                ? '#3CB371'
+                : isExpired
+                ? '#63666A'
+                : '#E9967A';
 
-            return (
-              <motion.li
-                key={task.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                style={{ backgroundColor }}
-                className="p-4 rounded-lg shadow-sm border text-white"
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedTasks.includes(task.id)}
-                      onChange={() => handleCheckbox(task.id)}
-                    />
-                    <span
-                      onClick={() => toggleTask(task.id)}
-                      className={`cursor-pointer ${
-                        task.completed ? 'line-through text-gray-300' : 'font-medium'
-                      }`}
-                    >
-                      {task.text}
-                    </span>
+              return (
+                <motion.li
+                  key={task.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ backgroundColor }}
+                  className="p-4 rounded-lg shadow-sm border text-white"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedTasks.includes(task.id)}
+                        onChange={() => handleCheckbox(task.id)}
+                      />
+                      <span
+                        onClick={() => toggleTask(task.id)}
+                        className={`cursor-pointer ${
+                          task.completed ? 'line-through text-gray-300' : 'font-medium'
+                        }`}
+                      >
+                        {task.text}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => editTask(task)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-sm rounded"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => editTask(task)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-sm rounded"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm">
-                  📅 Deadline: {new Date(task.deadline).toLocaleString()}
-                </p>
-                <p className="text-xs font-semibold mt-1">⏳ {timeLeft}</p>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </ul>
-    </div>
+                  <p className="text-sm">
+                    📅 Deadline: {new Date(task.deadline).toLocaleString()}
+                  </p>
+                  <p className="text-xs font-semibold mt-1">⏳ {timeLeft}</p>
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
+        </ul>
+      </div>
+    </motion.div>
   );
 }
