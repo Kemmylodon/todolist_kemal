@@ -47,7 +47,6 @@ export default function TodoList() {
       });
       setTimeRemaining(newTimeRemaining);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [tasks]);
 
@@ -70,16 +69,13 @@ export default function TodoList() {
       }
     };
 
-    if (tasks.length > 0) {
-      showDeadlineAlert();
-    }
+    if (tasks.length > 0) showDeadlineAlert();
   }, [tasks]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
     setDarkMode(initialDark);
     if (initialDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
@@ -103,18 +99,15 @@ export default function TodoList() {
     const deadlineTime = new Date(deadline).getTime();
     const now = new Date().getTime();
     const difference = deadlineTime - now;
-
     if (difference <= 0) return 'Waktu habis!';
-
     const days = Math.floor(difference / (1000 * 60 * 60 * 24));
     const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
     return `${days}h ${hours}j ${minutes}m ${seconds}d`;
   };
 
-  const addTask = async (): Promise<void> => {
+  const addTask = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Tambahkan Tugas Baru',
       html:
@@ -124,12 +117,10 @@ export default function TodoList() {
       showCancelButton: true,
       confirmButtonText: 'Tambah',
       cancelButtonText: 'Batal',
-      preConfirm: () => {
-        return [
-          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
-          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
-        ];
-      },
+      preConfirm: () => [
+        (document.getElementById('swal-input1') as HTMLInputElement)?.value,
+        (document.getElementById('swal-input2') as HTMLInputElement)?.value,
+      ],
     });
 
     if (formValues && formValues[0] && formValues[1]) {
@@ -140,7 +131,6 @@ export default function TodoList() {
       };
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
       setTasks([...tasks, { id: docRef.id, ...newTask }]);
-
       Swal.fire({
         icon: 'success',
         title: 'Tugas berhasil ditambahkan!',
@@ -150,7 +140,7 @@ export default function TodoList() {
     }
   };
 
-  const editTask = async (task: Task): Promise<void> => {
+  const editTask = async (task: Task) => {
     const { value: formValues } = await Swal.fire({
       title: 'Edit Tugas',
       html:
@@ -160,24 +150,19 @@ export default function TodoList() {
       showCancelButton: true,
       confirmButtonText: 'Simpan',
       cancelButtonText: 'Batal',
-      preConfirm: () => {
-        return [
-          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
-          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
-        ];
-      },
+      preConfirm: () => [
+        (document.getElementById('swal-input1') as HTMLInputElement)?.value,
+        (document.getElementById('swal-input2') as HTMLInputElement)?.value,
+      ],
     });
 
     if (formValues && formValues[0] && formValues[1]) {
       const updatedTask = { ...task, text: formValues[0], deadline: formValues[1] };
-      const taskRef = doc(db, 'tasks', task.id);
-      await updateDoc(taskRef, {
+      await updateDoc(doc(db, 'tasks', task.id), {
         text: updatedTask.text,
         deadline: updatedTask.deadline,
       });
-
       setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
-
       Swal.fire({
         icon: 'success',
         title: 'Tugas berhasil diperbarui!',
@@ -187,21 +172,19 @@ export default function TodoList() {
     }
   };
 
-  const toggleTask = async (id: string): Promise<void> => {
+  const toggleTask = async (id: string) => {
     const updatedTasks = tasks.map((task) =>
       task.id === id ? { ...task, completed: !task.completed } : task
     );
     setTasks(updatedTasks);
-    const taskRef = doc(db, 'tasks', id);
-    await updateDoc(taskRef, {
+    await updateDoc(doc(db, 'tasks', id), {
       completed: updatedTasks.find((task) => task.id === id)?.completed,
     });
   };
 
-  const deleteTask = async (id: string): Promise<void> => {
+  const deleteTask = async (id: string) => {
     await deleteDoc(doc(db, 'tasks', id));
     setTasks(tasks.filter((task) => task.id !== id));
-
     Swal.fire({
       icon: 'success',
       title: 'Tugas berhasil dihapus!',
@@ -218,7 +201,6 @@ export default function TodoList() {
 
   const handleMultiDelete = async () => {
     if (selectedTasks.length === 0) return;
-
     const confirm = await Swal.fire({
       title: `Yakin ingin hapus ${selectedTasks.length} tugas?`,
       icon: 'warning',
@@ -240,9 +222,9 @@ export default function TodoList() {
       initial={{ opacity: 0 }}
       animate={{ opacity: fadeTheme ? 0.5 : 1 }}
       transition={{ duration: 0.4 }}
-      className="min-h-screen transition-colors duration-300 bg-white dark:bg-gray-900 text-black dark:text-white px-4"
+      className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300 px-4"
     >
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-gray-50 dark:bg-gray-800 shadow-lg rounded-lg transition-colors duration-300">
+      <div className="max-w-xl mx-auto mt-10 p-6 bg-gray-100 dark:bg-gray-800 shadow-lg rounded-lg transition-colors duration-300">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-emerald-600 dark:text-emerald-300">
             📋 To-Do List
@@ -254,6 +236,7 @@ export default function TodoList() {
             {darkMode ? '☀ Light' : '🌙 Dark'}
           </button>
         </div>
+
         <div className="flex justify-between mb-6">
           <button
             onClick={addTask}
@@ -270,16 +253,17 @@ export default function TodoList() {
             </button>
           )}
         </div>
+
         <ul className="space-y-3">
           <AnimatePresence>
             {tasks.map((task) => {
               const timeLeft = timeRemaining[task.id] || 'Menghitung...';
               const isExpired = timeLeft === 'Waktu habis!';
-              const backgroundColor = task.completed
-                ? '#3CB371'
+              const taskColorClass = task.completed
+                ? 'bg-green-500'
                 : isExpired
-                ? '#63666A'
-                : '#E9967A';
+                ? 'bg-gray-600'
+                : 'bg-orange-400';
 
               return (
                 <motion.li
@@ -288,8 +272,7 @@ export default function TodoList() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  style={{ backgroundColor }}
-                  className="p-4 rounded-lg shadow-sm border text-white"
+                  className={`p-4 rounded-lg shadow-sm border text-white ${taskColorClass}`}
                 >
                   <div className="flex justify-between items-center mb-1">
                     <div className="flex items-center gap-2">
@@ -322,9 +305,7 @@ export default function TodoList() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm">
-                    📅 Deadline: {new Date(task.deadline).toLocaleString()}
-                  </p>
+                  <p className="text-sm">📅 Deadline: {new Date(task.deadline).toLocaleString()}</p>
                   <p className="text-xs font-semibold mt-1">⏳ {timeLeft}</p>
                 </motion.li>
               );
