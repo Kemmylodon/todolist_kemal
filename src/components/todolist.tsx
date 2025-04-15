@@ -177,11 +177,11 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
-            const taskColor = task.completed
-              ? 'bg-green-100'
+            const backgroundColor = task.completed
+              ? '#63666A' // selesai
               : isExpired
-              ? 'bg-red-100'
-              : 'bg-yellow-100';
+              ? '#7A4988' // melewati deadline
+              : '#E9967A'; // sedang berlangsung
 
             return (
               <motion.li
@@ -190,15 +190,16 @@ export default function TodoList() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className={`p-4 rounded-lg shadow-sm border ${taskColor}`}
+                style={{ backgroundColor }}
+                className="p-4 rounded-lg shadow-sm border text-white"
               >
                 <div className="flex justify-between items-center mb-1">
                   <span
                     onClick={() => toggleTask(task.id)}
                     className={`cursor-pointer ${
                       task.completed
-                        ? 'line-through text-gray-500'
-                        : 'font-medium text-gray-800'
+                        ? 'line-through text-gray-300'
+                        : 'font-medium'
                     }`}
                   >
                     {task.text}
@@ -218,10 +219,10 @@ export default function TodoList() {
                     </button>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm">
                   📅 Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
-                <p className="text-xs font-semibold text-gray-700 mt-1">
+                <p className="text-xs font-semibold mt-1">
                   ⏳ {timeLeft}
                 </p>
               </motion.li>
