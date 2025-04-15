@@ -36,6 +36,7 @@ export default function TodoList() {
     fetchTasks();
   }, []);
 
+  // Kalkulasi waktu tersisa
   useEffect(() => {
     const interval = setInterval(() => {
       const newTimeRemaining: { [key: string]: string } = {};
@@ -46,6 +47,31 @@ export default function TodoList() {
     }, 1000);
 
     return () => clearInterval(interval);
+  }, [tasks]);
+
+  // Notifikasi deadline mendekat
+  useEffect(() => {
+    const showDeadlineAlert = () => {
+      const now = new Date().getTime();
+      const warningTasks = tasks.filter((task) => {
+        const deadlineTime = new Date(task.deadline).getTime();
+        const daysLeft = Math.floor((deadlineTime - now) / (1000 * 60 * 60 * 24));
+        return daysLeft < 8 && daysLeft >= 0 && !task.completed;
+      });
+
+      if (warningTasks.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: '⚠️ Perhatian!',
+          text: 'Ada tugas yang mendekati deadline, tolong kerjakan!',
+          confirmButtonText: 'Oke, siap!',
+        });
+      }
+    };
+
+    if (tasks.length > 0) {
+      showDeadlineAlert();
+    }
   }, [tasks]);
 
   const calculateTimeRemaining = (deadline: string): string => {
@@ -61,14 +87,6 @@ export default function TodoList() {
     const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
     return `${days}h ${hours}j ${minutes}m ${seconds}d`;
-  };
-
-  // Fungsi untuk hitung jumlah hari tersisa
-  const getDaysRemaining = (deadline: string): number => {
-    const deadlineTime = new Date(deadline).getTime();
-    const now = new Date().getTime();
-    const difference = deadlineTime - now;
-    return Math.floor(difference / (1000 * 60 * 60 * 24));
   };
 
   const addTask = async (): Promise<void> => {
@@ -185,14 +203,11 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
-            const daysLeft = getDaysRemaining(task.deadline);
-            const showWarning = daysLeft >= 1 && daysLeft <= 7 && !task.completed && !isExpired;
-
             const backgroundColor = task.completed
               ? '#3CB371' // selesai
               : isExpired
-              ? '#63666A' // lewat deadline
-              : '#E9967A'; // sedang berjalan
+              ? '#63666A' // melewati deadline
+              : '#E9967A'; // sedang berlangsung
 
             return (
               <motion.li
@@ -224,15 +239,4 @@ export default function TodoList() {
                     </button>
                     <button
                       onClick={() => deleteTask(task.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm">
-                  📅 Deadline: {new Date(task.deadline).toLocaleString()}
-                </p>
-                <p className="text-xs font-semibold mt-1">
-                  ⏳ {timeLeft} {showWarning ? '⚠️' : ''}
-               
+                      className="bg-red-500 hover:bg-red-600 text
