@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -19,18 +20,11 @@ type Task = {
   deadline: string;
 };
 
-// Setup default toast
-const Toast = Swal.mixin({
-  toast: true,
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 2000,
-  timerProgressBar: true,
-});
-
 export default function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
+  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -72,7 +66,7 @@ export default function TodoList() {
 
   const addTask = async (): Promise<void> => {
     const { value: formValues } = await Swal.fire({
-      title: 'Tambahkan tugas baru',
+      title: 'Tambahkan Tugas Baru',
       html:
         '<input id="swal-input1" class="swal2-input" placeholder="Nama tugas">' +
         '<input id="swal-input2" type="datetime-local" class="swal2-input">',
@@ -96,15 +90,10 @@ export default function TodoList() {
       };
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
       setTasks([...tasks, { id: docRef.id, ...newTask }]);
-
-      Toast.fire({
-        icon: 'success',
-        title: 'Tugas berhasil ditambahkan!',
-      });
     }
   };
 
-  const editTask = async (task: Task) => {
+  const editTask = async (task: Task): Promise<void> => {
     const { value: formValues } = await Swal.fire({
       title: 'Edit Tugas',
       html:
@@ -129,12 +118,10 @@ export default function TodoList() {
         text: updatedTask.text,
         deadline: updatedTask.deadline,
       });
-      setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
 
-      Toast.fire({
-        icon: 'info',
-        title: 'Tugas diperbarui!',
-      });
+      setTasks(
+        tasks.map((t) => (t.id === task.id ? updatedTask : t))
+      );
     }
   };
 
@@ -147,31 +134,22 @@ export default function TodoList() {
     await updateDoc(taskRef, {
       completed: updatedTasks.find((task) => task.id === id)?.completed,
     });
-
-    const toggledTask = updatedTasks.find((task) => task.id === id);
-    Toast.fire({
-      icon: toggledTask?.completed ? 'success' : 'info',
-      title: toggledTask?.completed ? 'Tugas selesai!' : 'Tugas dibatalkan!',
-    });
   };
 
   const deleteTask = async (id: string): Promise<void> => {
     await deleteDoc(doc(db, 'tasks', id));
     setTasks(tasks.filter((task) => task.id !== id));
-
-    Toast.fire({
-      icon: 'warning',
-      title: 'Tugas dihapus!',
-    });
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-gray-100 shadow-lg rounded-lg">
-      <h1 className="text-2xl font-bold text-gray-700 mb-6 text-center">📋 To-Do List</h1>
-      <div className="flex justify-center mb-4">
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-gray-50 shadow-lg rounded-lg">
+      <h1 className="text-3xl font-bold text-center text-emerald-600 mb-6">
+        📋 To-Do List
+      </h1>
+      <div className="flex justify-center mb-6">
         <button
           onClick={addTask}
-          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded transition"
         >
           ➕ Tambah Tugas
         </button>
@@ -182,9 +160,9 @@ export default function TodoList() {
             const timeLeft = calculateTimeRemaining(task.deadline);
             const isExpired = timeLeft === 'Waktu habis!';
             const taskColor = task.completed
-              ? 'bg-gray-300'
+              ? 'bg-green-100'
               : isExpired
-              ? 'bg-red-200'
+              ? 'bg-red-100'
               : 'bg-yellow-100';
 
             return (
@@ -196,7 +174,7 @@ export default function TodoList() {
                 transition={{ duration: 0.3 }}
                 className={`p-4 rounded-lg shadow-sm border ${taskColor}`}
               >
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-1">
                   <span
                     onClick={() => toggleTask(task.id)}
                     className={`cursor-pointer ${
@@ -207,24 +185,24 @@ export default function TodoList() {
                   >
                     {task.text}
                   </span>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
-                  >
-                    Hapus
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => editTask(task)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-sm rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-1">
-                  <p className="text-sm text-gray-600">
-                    📅 Deadline: {new Date(task.deadline).toLocaleString()}
-                  </p>
-                  <button
-                    onClick={() => editTask(task)}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Edit
-                  </button>
-                </div>
+                <p className="text-sm text-gray-600">
+                  📅 Deadline: {new Date(task.deadline).toLocaleString()}
+                </p>
                 <p className="text-xs font-semibold text-gray-700 mt-1">
                   ⏳ {timeRemaining[task.id] || 'Menghitung...'}
                 </p>
