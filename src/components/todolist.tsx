@@ -63,6 +63,14 @@ export default function TodoList() {
     return `${days}h ${hours}j ${minutes}m ${seconds}d`;
   };
 
+  // Fungsi untuk hitung jumlah hari tersisa
+  const getDaysRemaining = (deadline: string): number => {
+    const deadlineTime = new Date(deadline).getTime();
+    const now = new Date().getTime();
+    const difference = deadlineTime - now;
+    return Math.floor(difference / (1000 * 60 * 60 * 24));
+  };
+
   const addTask = async (): Promise<void> => {
     const { value: formValues } = await Swal.fire({
       title: 'Tambahkan Tugas Baru',
@@ -177,11 +185,14 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
+            const daysLeft = getDaysRemaining(task.deadline);
+            const showWarning = daysLeft >= 1 && daysLeft <= 7 && !task.completed && !isExpired;
+
             const backgroundColor = task.completed
               ? '#3CB371' // selesai
               : isExpired
-              ? '#63666A' // melewati deadline
-              : '#E9967A'; // sedang berlangsung
+              ? '#63666A' // lewat deadline
+              : '#E9967A'; // sedang berjalan
 
             return (
               <motion.li
@@ -223,13 +234,5 @@ export default function TodoList() {
                   📅 Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
                 <p className="text-xs font-semibold mt-1">
-                  ⏳ {timeLeft}
-                </p>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </ul>
-    </div>
-  );
-}
+                  ⏳ {timeLeft} {showWarning ? '⚠️' : ''}
+               
