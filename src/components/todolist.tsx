@@ -19,6 +19,15 @@ type Task = {
   deadline: string;
 };
 
+// Setup default toast
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true,
+});
+
 export default function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
@@ -87,6 +96,11 @@ export default function TodoList() {
       };
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
       setTasks([...tasks, { id: docRef.id, ...newTask }]);
+
+      Toast.fire({
+        icon: 'success',
+        title: 'Tugas berhasil ditambahkan!',
+      });
     }
   };
 
@@ -116,6 +130,11 @@ export default function TodoList() {
         deadline: updatedTask.deadline,
       });
       setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
+
+      Toast.fire({
+        icon: 'info',
+        title: 'Tugas diperbarui!',
+      });
     }
   };
 
@@ -128,11 +147,22 @@ export default function TodoList() {
     await updateDoc(taskRef, {
       completed: updatedTasks.find((task) => task.id === id)?.completed,
     });
+
+    const toggledTask = updatedTasks.find((task) => task.id === id);
+    Toast.fire({
+      icon: toggledTask?.completed ? 'success' : 'info',
+      title: toggledTask?.completed ? 'Tugas selesai!' : 'Tugas dibatalkan!',
+    });
   };
 
   const deleteTask = async (id: string): Promise<void> => {
     await deleteDoc(doc(db, 'tasks', id));
     setTasks(tasks.filter((task) => task.id !== id));
+
+    Toast.fire({
+      icon: 'warning',
+      title: 'Tugas dihapus!',
+    });
   };
 
   return (
