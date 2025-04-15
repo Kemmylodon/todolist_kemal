@@ -90,6 +90,13 @@ export default function TodoList() {
       };
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
       setTasks([...tasks, { id: docRef.id, ...newTask }]);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Tugas berhasil ditambahkan!',
+        showConfirmButton: false,
+        timer: 1500,
+      });
     }
   };
 
@@ -139,6 +146,13 @@ export default function TodoList() {
   const deleteTask = async (id: string): Promise<void> => {
     await deleteDoc(doc(db, 'tasks', id));
     setTasks(tasks.filter((task) => task.id !== id));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Tugas berhasil dihapus!',
+      showConfirmButton: false,
+      timer: 1500,
+    });
   };
 
   return (
