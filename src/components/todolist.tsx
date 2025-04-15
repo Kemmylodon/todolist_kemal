@@ -22,7 +22,9 @@ type Task = {
 
 export default function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>({});
+  const [timeRemaining, setTimeRemaining] = useState<{ [key: string]: string }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -124,14 +126,9 @@ export default function TodoList() {
         deadline: updatedTask.deadline,
       });
 
-      setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Tugas berhasil diperbarui!',
-        showConfirmButton: false,
-        timer: 1500,
-      });
+      setTasks(
+        tasks.map((t) => (t.id === task.id ? updatedTask : t))
+      );
     }
   };
 
