@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
@@ -62,7 +60,7 @@ export default function TodoList() {
       if (warningTasks.length > 0) {
         Swal.fire({
           icon: 'warning',
-          title: '⚠️ Perhatian!',
+          title: '⚠ Perhatian!',
           text: 'Ada tugas yang mendekati deadline, tolong kerjakan!',
           confirmButtonText: 'Oke, siap!',
         });
@@ -72,6 +70,18 @@ export default function TodoList() {
     if (tasks.length > 0) {
       showDeadlineAlert();
     }
+  }, [tasks]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newTimeRemaining: { [key: string]: string } = {};
+      tasks.forEach((task) => {
+        newTimeRemaining[task.id] = calculateTimeRemaining(task.deadline);
+      });
+      setTimeRemaining(newTimeRemaining);
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [tasks]);
 
   const calculateTimeRemaining = (deadline: string): string => {
@@ -239,4 +249,23 @@ export default function TodoList() {
                     </button>
                     <button
                       onClick={() => deleteTask(task.id)}
-                      className="bg-red-500 hover:bg-red-600 text
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm">
+                  📅 Deadline: {new Date(task.deadline).toLocaleString()}
+                </p>
+                <p className="text-xs font-semibold mt-1">
+                  ⏳ {timeLeft}
+                </p>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </ul>
+    </div>
+  );
+}
