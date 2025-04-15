@@ -180,7 +180,7 @@ export default function TodoList() {
             const backgroundColor = task.completed
               ? '#3CB371' // selesai
               : isExpired
-              ? '#CD5C5C' // melewati deadline
+              ? '#63666A' // melewati deadline
               : '#E9967A'; // sedang berlangsung
 
             return (
