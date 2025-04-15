@@ -55,11 +55,12 @@ export default function TodoList() {
 
     if (difference <= 0) return 'Waktu habis!';
 
-    const hours = Math.floor(difference / (1000 * 60 * 60));
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-    return `${hours}j ${minutes}m ${seconds}d`;
+    return `${days}h ${hours}j ${minutes}m ${seconds}d`;
   };
 
   const addTask = async (): Promise<void> => {
@@ -126,7 +127,6 @@ export default function TodoList() {
 
       setTasks(tasks.map((t) => (t.id === task.id ? updatedTask : t)));
 
-      // ✅ Notifikasi setelah edit tugas
       Swal.fire({
         icon: 'success',
         title: 'Tugas berhasil diperbarui!',
@@ -175,15 +175,15 @@ export default function TodoList() {
       <ul className="space-y-3">
         <AnimatePresence>
           {tasks.map((task) => {
-            const timeLeft = calculateTimeRemaining(task.deadline);
+            const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
             const taskColor = task.completed
-              ? 'bg-green-100'*
+              ? 'bg-green-100'
               : isExpired
               ? 'bg-red-100'
               : 'bg-yellow-100';
-.
-            return (.
+
+            return (
               <motion.li
                 key={task.id}
                 initial={{ opacity: 0, y: -10 }}
@@ -222,7 +222,7 @@ export default function TodoList() {
                   📅 Deadline: {new Date(task.deadline).toLocaleString()}
                 </p>
                 <p className="text-xs font-semibold text-gray-700 mt-1">
-                  ⏳ {timeRemaining[task.id] || 'Menghitung...'}
+                  ⏳ {timeLeft}
                 </p>
               </motion.li>
             );
