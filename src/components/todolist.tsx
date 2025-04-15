@@ -178,7 +178,7 @@ export default function TodoList() {
             const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
             const backgroundColor = task.completed
-              ? '#63666A' // selesai
+              ? '#3CB371' // selesai
               : isExpired
               ? '#CD5C5C' // melewati deadline
               : '#E9967A'; // sedang berlangsung
