@@ -51,28 +51,6 @@ export default function TodoList() {
   }, [tasks]);
 
   useEffect(() => {
-    const showDeadlineAlert = () => {
-      const now = new Date().getTime();
-      const warningTasks = tasks.filter((task) => {
-        const deadlineTime = new Date(task.deadline).getTime();
-        const daysLeft = Math.floor((deadlineTime - now) / (1000 * 60 * 60 * 24));
-        return daysLeft < 8 && daysLeft >= 0 && !task.completed;
-      });
-
-      if (warningTasks.length > 0) {
-        Swal.fire({
-          icon: 'warning',
-          title: '⚠ Perhatian!',
-          text: 'Ada tugas yang mendekati deadline, tolong kerjakan!',
-          confirmButtonText: 'Oke, siap!',
-        });
-      }
-    };
-
-    if (tasks.length > 0) showDeadlineAlert();
-  }, [tasks]);
-
-  useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
