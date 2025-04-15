@@ -37,7 +37,6 @@ export default function TodoList() {
     fetchTasks();
   }, []);
 
-  // Update waktu tersisa
   useEffect(() => {
     const interval = setInterval(() => {
       const newTimeRemaining: { [key: string]: string } = {};
@@ -46,10 +45,10 @@ export default function TodoList() {
       });
       setTimeRemaining(newTimeRemaining);
     }, 1000);
+
     return () => clearInterval(interval);
   }, [tasks]);
 
-  // Notifikasi deadline mendekati
   useEffect(() => {
     const showDeadlineAlert = () => {
       const now = new Date().getTime();
@@ -185,7 +184,7 @@ export default function TodoList() {
     });
   };
 
-  const handleCheckboxChange = (taskId: string) => {
+  const handleCheckbox = (taskId: string) => {
     setSelectedTasks((prev) =>
       prev.includes(taskId)
         ? prev.filter((id) => id !== taskId)
@@ -196,16 +195,18 @@ export default function TodoList() {
   const handleMultiDelete = async () => {
     if (selectedTasks.length === 0) return;
 
-    const confirmed = await Swal.fire({
-      title: 'Yakin ingin menghapus tugas terpilih?',
+    const confirm = await Swal.fire({
+      title: `Yakin ingin hapus ${selectedTasks.length} tugas?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal',
     });
 
-    if (confirmed.isConfirmed) {
-      await Promise.all(selectedTasks.map((id) => deleteDoc(doc(db, 'tasks', id))));
+    if (confirm.isConfirmed) {
+      await Promise.all(
+        selectedTasks.map((id) => deleteDoc(doc(db, 'tasks', id)))
+      );
       setTasks(tasks.filter((task) => !selectedTasks.includes(task.id)));
       setSelectedTasks([]);
       Swal.fire('Dihapus!', 'Tugas terpilih telah dihapus.', 'success');
@@ -238,4 +239,62 @@ export default function TodoList() {
           {tasks.map((task) => {
             const timeLeft = timeRemaining[task.id] || 'Menghitung...';
             const isExpired = timeLeft === 'Waktu habis!';
-            const
+            const backgroundColor = task.completed
+              ? '#3CB371'
+              : isExpired
+              ? '#63666A'
+              : '#E9967A';
+
+            return (
+              <motion.li
+                key={task.id}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                style={{ backgroundColor }}
+                className="p-4 rounded-lg shadow-sm border text-white"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.includes(task.id)}
+                      onChange={() => handleCheckbox(task.id)}
+                    />
+                    <span
+                      onClick={() => toggleTask(task.id)}
+                      className={`cursor-pointer ${
+                        task.completed ? 'line-through text-gray-300' : 'font-medium'
+                      }`}
+                    >
+                      {task.text}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => editTask(task)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-sm rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 text-sm rounded"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm">
+                  📅 Deadline: {new Date(task.deadline).toLocaleString()}
+                </p>
+                <p className="text-xs font-semibold mt-1">⏳ {timeLeft}</p>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </ul>
+    </div>
+  );
+}
