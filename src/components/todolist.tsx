@@ -99,37 +99,33 @@ export default function TodoList() {
       confirmButtonText: 'Tambah',
       cancelButtonText: 'Batal',
       preConfirm: () => {
-        const name = (document.getElementById('swal-input1') as HTMLInputElement)?.value;
+        const taskName = (document.getElementById('swal-input1') as HTMLInputElement)?.value;
         const deadline = (document.getElementById('swal-input2') as HTMLInputElement)?.value;
-  
-        if (!name || !deadline) {
-          Swal.showValidationMessage('Nama dan deadline tidak boleh kosong!');
-          return null;
+        if (!taskName || !deadline) {
+          Swal.showValidationMessage('Nama tugas dan deadline wajib diisi!');
+          return;
         }
-  
-        return [name, deadline];
+        return [taskName, deadline];
       },
     });
-  
-    if (!formValues) return;
-  
-    const newTask: Omit<Task, 'id'> = {
-      text: formValues[0],
-      completed: false,
-      deadline: formValues[1],
-    };
-  
-    const docRef = await addDoc(collection(db, 'tasks'), newTask);
-    setTasks((prev) => [...prev, { id: docRef.id, ...newTask }]);
-  
-    Swal.fire({
-      icon: 'success',
-      title: 'Tugas berhasil ditambahkan!',
-      showConfirmButton: false,
-      timer: 1500,
-    });
+
+    if (formValues && formValues[0] && formValues[1]) {
+      const newTask: Omit<Task, 'id'> = {
+        text: formValues[0],
+        completed: false,
+        deadline: formValues[1],
+      };
+      const docRef = await addDoc(collection(db, 'tasks'), newTask);
+      setTasks([...tasks, { id: docRef.id, ...newTask }]);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Tugas berhasil ditambahkan!',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }
   };
-  
 
   const editTask = async (task: Task): Promise<void> => {
     const { value: formValues } = await Swal.fire({
@@ -142,10 +138,13 @@ export default function TodoList() {
       confirmButtonText: 'Simpan',
       cancelButtonText: 'Batal',
       preConfirm: () => {
-        return [
-          (document.getElementById('swal-input1') as HTMLInputElement)?.value,
-          (document.getElementById('swal-input2') as HTMLInputElement)?.value,
-        ];
+        const taskName = (document.getElementById('swal-input1') as HTMLInputElement)?.value;
+        const deadline = (document.getElementById('swal-input2') as HTMLInputElement)?.value;
+        if (!taskName || !deadline) {
+          Swal.showValidationMessage('Nama tugas dan deadline wajib diisi!');
+          return;
+        }
+        return [taskName, deadline];
       },
     });
 
