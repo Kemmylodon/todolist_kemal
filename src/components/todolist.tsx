@@ -122,7 +122,48 @@ export default function TodoList() {
         timer: 1500,
       });
     }
-  };
+  }
+
+  const addTask = async (): Promise<void> => {
+  const { value: formValues } = await Swal.fire({
+    title: 'Tambahkan Tugas Baru',
+    html:
+      '<input id="swal-input1" class="swal2-input" placeholder="Nama tugas">' +
+      '<input id="swal-input2" type="datetime-local" class="swal2-input">',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Tambah',
+    cancelButtonText: 'Batal',
+    preConfirm: () => {
+      const name = (document.getElementById('swal-input1') as HTMLInputElement)?.value.trim();
+      const deadline = (document.getElementById('swal-input2') as HTMLInputElement)?.value;
+
+      if (!name || !deadline) {
+        Swal.showValidationMessage('⚠️ Nama dan deadline tugas wajib diisi!');
+        return null;
+      }
+
+      return [name, deadline];
+    },
+  });
+
+  if (formValues && formValues[0] && formValues[1]) {
+    const newTask: Omit<Task, 'id'> = {
+      text: formValues[0],
+      completed: false,
+      deadline: formValues[1],
+    };
+    const docRef = await addDoc(collection(db, 'tasks'), newTask);
+    setTasks([...tasks, { id: docRef.id, ...newTask }]);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Tugas berhasil ditambahkan!',
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+};
 
   const editTask = async (task: Task): Promise<void> => {
     const { value: formValues } = await Swal.fire({
