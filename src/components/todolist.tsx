@@ -178,16 +178,28 @@ export default function TodoList() {
     });
   };
 
+  // ✅ MODIFIKASI DI SINI
   const deleteTask = async (id: string): Promise<void> => {
-    await deleteDoc(doc(db, 'tasks', id));
-    setTasks(tasks.filter((task) => task.id !== id));
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Tugas berhasil dihapus!',
-      showConfirmButton: false,
-      timer: 1500,
+    const confirm = await Swal.fire({
+      title: 'Apakah Anda yakin ingin menghapus tugas ini?',
+      text: 'Tindakan ini tidak bisa dibatalkan.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal',
     });
+
+    if (confirm.isConfirmed) {
+      await deleteDoc(doc(db, 'tasks', id));
+      setTasks(tasks.filter((task) => task.id !== id));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Tugas berhasil dihapus!',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }
   };
 
   const handleCheckbox = (taskId: string) => {
